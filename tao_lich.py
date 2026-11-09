@@ -153,7 +153,7 @@ def write_event(f, start_date, duration_days, summary, description="", uid="", d
     write_ics_line(f, "END:VEVENT")
 
 def generate_calendar():
-    output_file = "lich_vietnam_2026_2200.ics"
+    output_file = "lich_vietnam_2026_2125.ics"
     dtstamp = "20260101T000000Z"
     event_seq = 0
 
@@ -164,7 +164,7 @@ def generate_calendar():
         write_ics_line(f, "CALSCALE:GREGORIAN")
         write_ics_line(f, "METHOD:PUBLISH")
 
-        for year in range(2026, 2201):
+        for year in range(2026, 2126):
             events = []
 
             def add_event(start_date, duration_days, summary, description="", rrule=""):
@@ -172,7 +172,7 @@ def generate_calendar():
 
             def add_yearly_solar_event(start_date, duration_days, summary, description=""):
                 if year == 2026:
-                    add_event(start_date, duration_days, summary, description, rrule="FREQ=YEARLY;UNTIL=22001231")
+                    add_event(start_date, duration_days, summary, description, rrule="FREQ=YEARLY;UNTIL=21251231")
 
             # 1. Lễ & Ngày kỉ niệm Việt Nam (Dương lịch)
             add_yearly_solar_event(
@@ -559,7 +559,7 @@ def generate_calendar():
                     "Ngày của Mẹ",
                     "Ngày của Mẹ (Mother's Day) có nguồn gốc từ phong trào do bà Anna Marie Jarvis khởi xướng tại Mỹ vào đầu thế kỷ XX và được tổ chức phổ biến vào Chủ nhật tuần thứ hai của tháng 5 hằng năm. "
                     "Đây là dịp đặc biệt để những người con bày tỏ lòng biết ơn sâu sắc, tình yêu thương và sự kính trọng đối với sự hy sinh thầm lặng cùng công ơn sinh thành, dưỡng dục bao la của mẹ.",
-                    rrule="FREQ=YEARLY;BYMONTH=5;BYDAY=2SU;UNTIL=22001231",
+                    rrule="FREQ=YEARLY;BYMONTH=5;BYDAY=2SU;UNTIL=21251231",
                 )
 
                 fathers_day = get_nth_weekday_of_month(year, 6, 6, 3)
@@ -569,7 +569,7 @@ def generate_calendar():
                     "Ngày của Cha",
                     "Ngày của Cha (Father's Day) được khởi xướng bởi bà Sonora Smart Dodd tại bang Washington (Mỹ) vào năm 1910 để tri ân người cha cựu chiến binh đã một mình tần tảo nuôi dạy 6 anh chị em bà nên người, và được tổ chức vào Chủ nhật tuần thứ ba của tháng 6 hằng năm. "
                     "Đây là dịp để con cái tôn vinh vai trò trụ cột, điểm tựa vững chắc và tình yêu thương, che chở của người cha đối với gia đình.",
-                    rrule="FREQ=YEARLY;BYMONTH=6;BYDAY=3SU;UNTIL=22001231",
+                    rrule="FREQ=YEARLY;BYMONTH=6;BYDAY=3SU;UNTIL=21251231",
                 )
 
             try:
@@ -592,7 +592,7 @@ def generate_calendar():
                 add_event(
                     get_solar_from_lunar(year - 1, 12, 23),
                     1,
-                    "Tết ông Công ông Táo",
+                    "Ngày ông Táo về trời",
                     "23 tháng Chạp\n"
                     "Theo quan niệm của dân gian, 23 ông Táo về trời, tâu với Ngọc Hoàng chuyện đời trong năm. Vì thế, người Việt làm lễ cúng ông Táo thịnh soạn, với mong muốn ông Táo sẽ tâu những điều tốt đẹp với Ngọc Hoàng.\n"
                     "- Tiễn ông Táo - Nét đẹp văn hóa dân gian:\n"
@@ -619,6 +619,12 @@ def generate_calendar():
                     "Đêm Tất Niên\n"
                     "Ngày cuối cùng của năm Âm lịch (chiều 30 Tết hoặc 29 Tết nếu tháng Chạp thiếu). Buổi chiều, các gia đình làm lễ cúng Tất niên mời ông bà tổ tiên về ăn Tết cùng con cháu và quây quần bên bữa cơm đoàn viên ấm áp cuối năm. "
                     "Đúng thời khắc chuyển giao giữa năm cũ và năm mới (đêm Giao Thừa - 'cựu giao, tân tiếp'), lễ cúng Giao Thừa ngoài trời và trong nhà được cử hành trang trọng để tiễn vị Hành khiển năm cũ, nghênh đón vị Hành khiển năm mới và cầu chúc một năm mới bình an, vạn sự cát tường.",
+                )
+                add_event(
+                    giao_thua,
+                    1,
+                    "Đón ông Táo về nhà",
+                    "Theo tín ngưỡng dân gian truyền thống, sau khi về trời chầu Ngọc Hoàng vào ngày 23 tháng Chạp, đến chiều 30 Tết (hoặc 29 Tết nếu tháng Chạp thiếu) trong lễ cúng Tất niên hoặc thời khắc Giao Thừa chuyển giao năm mới, các gia đình làm lễ rước ông Táo trở về ngự tại gian bếp để tiếp tục coi sóc bếp lửa, giữ gìn sự ấm no, gia đạo bình an và may mắn suốt năm mới.",
                 )
 
                 add_event(
