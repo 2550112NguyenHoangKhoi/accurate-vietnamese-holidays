@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 from lunar_python import Lunar, LunarYear
 
 def calculate_easter(year):
@@ -88,35 +89,80 @@ def format_ram_meaning(month):
     )
     return f"{header}\n{meaning}"
 
-def write_event(f, start_date, duration_days, summary, description=""):
+def escape_ics_text(text):
+    return (
+        text.replace("\\", "\\\\")
+        .replace("\r\n", "\n")
+        .replace("\r", "\n")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace("\n", "\\n")
+    )
+
+def fold_ics_line(line, max_octets=75):
+    if len(line.encode("utf-8")) <= max_octets:
+        return line
+    lines = []
+    current_chars = []
+    current_bytes = 0
+
+    i = 0
+    n = len(line)
+    while i < n:
+        if line[i] == "\\" and i + 1 < n:
+            token = line[i : i + 2]
+            i += 2
+        else:
+            token = line[i]
+            i += 1
+        token_bytes = len(token.encode("utf-8"))
+        if current_bytes + token_bytes > max_octets:
+            lines.append("".join(current_chars))
+            current_chars = [" ", token]
+            current_bytes = 1 + token_bytes
+        else:
+            current_chars.append(token)
+            current_bytes += token_bytes
+
+    if current_chars:
+        lines.append("".join(current_chars))
+    return "\r\n".join(lines)
+
+def write_ics_line(f, line):
+    f.write(fold_ics_line(line) + "\r\n")
+
+def write_event(f, start_date, duration_days, summary, description="", uid="", dtstamp="20260101T000000Z"):
     end_date = start_date + datetime.timedelta(days=duration_days)
-    f.write("BEGIN:VEVENT\n")
-    f.write(f"DTSTART;VALUE=DATE:{start_date.strftime('%Y%m%d')}\n")
-    f.write(f"DTEND;VALUE=DATE:{end_date.strftime('%Y%m%d')}\n")
-    f.write(f"SUMMARY:{summary}\n")
+    write_ics_line(f, "BEGIN:VEVENT")
+    write_ics_line(f, f"UID:{uid}")
+    write_ics_line(f, f"DTSTAMP:{dtstamp}")
+    write_ics_line(f, f"DTSTART;VALUE=DATE:{start_date.strftime('%Y%m%d')}")
+    write_ics_line(f, f"DTEND;VALUE=DATE:{end_date.strftime('%Y%m%d')}")
+    write_ics_line(f, f"SUMMARY:{escape_ics_text(summary)}")
 
     if description:
-        escaped_description = description.replace("\r\n", "\n").replace("\n", "\\n")
-        f.write(f"DESCRIPTION:{escaped_description}\n")
+        write_ics_line(f, f"DESCRIPTION:{escape_ics_text(description)}")
 
-    f.write("BEGIN:VALARM\n")
-    f.write("ACTION:DISPLAY\n")
-    f.write(f"DESCRIPTION:Nhắc nhở: {summary}\n")
-    f.write("TRIGGER:PT0S\n")
-    f.write("END:VALARM\n")
-    f.write("END:VEVENT\n")
+    write_ics_line(f, "BEGIN:VALARM")
+    write_ics_line(f, "ACTION:DISPLAY")
+    write_ics_line(f, f"DESCRIPTION:{escape_ics_text(f'Nhắc nhở: {summary}')}")
+    write_ics_line(f, "TRIGGER:PT0S")
+    write_ics_line(f, "END:VALARM")
+    write_ics_line(f, "END:VEVENT")
 
 def generate_calendar():
-    output_file = "lich_vietnam_2026_2300.ics"
+    output_file = "lich_vietnam_2026_2200.ics"
+    dtstamp = "20260101T000000Z"
+    event_seq = 0
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write("BEGIN:VCALENDAR\n")
-        f.write("VERSION:2.0\n")
-        f.write("PRODID:-//Holidays//Vietnam//VI\n")
-        f.write("CALSCALE:GREGORIAN\n")
-        f.write("METHOD:PUBLISH\n")
+    with open(output_file, "w", encoding="utf-8", newline="") as f:
+        write_ics_line(f, "BEGIN:VCALENDAR")
+        write_ics_line(f, "VERSION:2.0")
+        write_ics_line(f, "PRODID:-//Holidays//Vietnam//VI")
+        write_ics_line(f, "CALSCALE:GREGORIAN")
+        write_ics_line(f, "METHOD:PUBLISH")
 
-        for year in range(2026, 2301):
+        for year in range(2026, 2201):
             events = []
 
             def add_event(start_date, duration_days, summary, description=""):
@@ -733,9 +779,22 @@ def generate_calendar():
 
             events.sort(key=lambda item: item[0])
             for start_date, duration_days, summary, description in events:
-                write_event(f, start_date, duration_days, summary, description)
+                event_seq += 1
+                uid_hash = hashlib.md5(
+                    f"{start_date.isoformat()}|{duration_days}|{summary}|{event_seq}".encode("utf-8")
+                ).hexdigest()[:12]
+                uid = f"{start_date.strftime('%Y%m%d')}-{event_seq:05d}-{uid_hash}@vietnam-holidays"
+                write_event(
+                    f,
+                    start_date,
+                    duration_days,
+                    summary,
+                    description,
+                    uid=uid,
+                    dtstamp=dtstamp,
+                )
 
-        f.write("END:VCALENDAR\n")
+        write_ics_line(f, "END:VCALENDAR")
         print(f"Đã tạo thành công tệp {output_file}")
 
 if __name__ == "__main__":
