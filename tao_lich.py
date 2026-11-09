@@ -150,6 +150,11 @@ def write_event(f, start_date, duration_days, summary, description="", uid="", d
     write_ics_line(f, f"DESCRIPTION:{escape_ics_text(f'Nhắc nhở: {summary}')}")
     write_ics_line(f, "TRIGGER:PT0S")
     write_ics_line(f, "END:VALARM")
+    write_ics_line(f, "BEGIN:VALARM")
+    write_ics_line(f, "ACTION:DISPLAY")
+    write_ics_line(f, f"DESCRIPTION:{escape_ics_text(f'Nhắc nhở: {summary}')}")
+    write_ics_line(f, "TRIGGER:-P1DT15H")
+    write_ics_line(f, "END:VALARM")
     write_ics_line(f, "END:VEVENT")
 
 def generate_calendar():
